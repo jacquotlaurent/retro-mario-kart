@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0e1220">
+<title>Rétro Mario Kart — ta manette</title>
+<link rel="stylesheet" href="font.css">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎴</text></svg>">
+</head>
+<body>
+
+<div class="tel">
+
+  <div class="tel__hud">
+    <div>
+      <small>Course</small>
+      <b id="hud-code">····</b>
+    </div>
+    <div>
+      <small>Case</small>
+      <b id="hud-case">0/20</b>
+    </div>
+    <div>
+      <small>Tours</small>
+      <b id="hud-tour">0</b>
+    </div>
+  </div>
+
+  <!-- 1. Rejoindre -->
+  <section class="section" id="etape-nom">
+    <h1 class="tel__titre">🏁 Prends le volant</h1>
+    <p class="tel__aide">Ton prénom s'affichera sur le grand écran quand tu joueras une carte.</p>
+    <input class="champ" id="champ-nom" placeholder="Ton prénom" maxlength="30" autocomplete="given-name" enterkeyhint="go">
+    <button class="bouton bouton--principal bouton--large" id="btn-rejoindre">Rejoindre la course</button>
+  </section>
+
+  <!-- 2. Jouer -->
+  <section class="section" id="etape-jeu" hidden>
+    <p class="tel__aide" id="tour-de-parole"></p>
+    <h2 class="tel__titre">Choisis ton objet</h2>
+    <div class="cartes" id="cartes"></div>
+    <textarea class="champ" id="champ-note" maxlength="200"
+              placeholder="Le post-it qui va avec — ex. « la CI qui casse tous les matins »"></textarea>
+    <button class="bouton bouton--principal bouton--large" id="btn-jouer" disabled>Choisis une carte</button>
+  </section>
+
+  <!-- 3. Confirmation + passage de parole -->
+  <section class="section" id="etape-apres" hidden>
+    <div class="confirmation">
+      <div class="confirmation__objet" id="confirm-objet">⭐</div>
+      <div class="confirmation__texte" id="confirm-texte"></div>
+    </div>
+    <h2 class="tel__titre">🐢 Passe la carapace</h2>
+    <p class="tel__aide">Désigne qui prend la parole après toi.</p>
+    <div class="puces" id="puces-joueurs"></div>
+    <button class="bouton bouton--large" id="btn-rejouer">Jouer une autre carte</button>
+  </section>
+
+  <div class="section">
+    <h2 class="tel__titre" style="font-size:11px">Sur le circuit</h2>
+    <ul class="flux" id="flux"></ul>
+  </div>
+</div>
+
+<div class="alerte" id="alerte" hidden></div>
+<div class="badge-demo" id="badge-demo" hidden>Mode démo — cet écran seulement</div>
+
+<script src="config.js"></script>
+<script src="api.js"></script>
+<script src="fx.js"></script>
+<script src="player.js"></script>
+</body>
+</html>

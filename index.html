@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rétro Mario Kart — écran de course</title>
+<link rel="stylesheet" href="font.css">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏁</text></svg>">
+</head>
+<body>
+
+<div class="ecran" id="ecran">
+
+  <header class="hud">
+    <div>
+      <h1 class="hud__titre">🏁 Rétro Mario Kart</h1>
+      <p class="hud__sous">Le sprint qu'on vient de vivre, en un tour de circuit.</p>
+    </div>
+
+    <div class="hud__compteurs">
+      <div class="compteur">
+        <div class="compteur__valeur" id="valeur-case">0<span style="font-size:.55em">/20</span></div>
+        <div class="compteur__label">Case</div>
+      </div>
+      <div class="compteur">
+        <div class="compteur__valeur" id="valeur-tour">0</div>
+        <div class="compteur__label">Tours bouclés</div>
+      </div>
+      <div class="compteur">
+        <div class="compteur__valeur" id="valeur-pilotes">0</div>
+        <div class="compteur__label">Pilotes</div>
+      </div>
+    </div>
+
+    <div class="rejoindre">
+      <div class="rejoindre__qr" id="qr"></div>
+      <div>
+        <div class="rejoindre__code" id="code-session">····</div>
+        <p class="rejoindre__aide" id="url-affichee">Scannez pour jouer vos cartes depuis votre téléphone.</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="plateau">
+    <aside class="colonne colonne--positif">
+      <h2 class="colonne__titre">Ce qui nous a fait avancer</h2>
+      <div class="postits" id="postits-positifs"></div>
+    </aside>
+
+    <section class="circuit">
+      <svg id="circuit" viewBox="0 0 1000 640" preserveAspectRatio="xMidYMid meet" role="img"
+           aria-label="Circuit de course avec le kart de l'équipe"></svg>
+    </section>
+
+    <aside class="colonne colonne--negatif">
+      <h2 class="colonne__titre">Ce qui nous a freinés</h2>
+      <div class="postits" id="postits-negatifs"></div>
+    </aside>
+  </main>
+
+  <footer class="bandeau">
+    <div class="dernier-coup" id="dernier-coup">
+      <div class="dernier-coup__objet">🏁</div>
+      <div class="dernier-coup__texte">
+        <div class="dernier-coup__ligne">En attente du premier pilote…</div>
+        <div class="dernier-coup__note">Chacun scanne le QR code, choisit une carte et raconte.</div>
+      </div>
+    </div>
+
+    <div class="parole" id="parole" hidden>
+      <span>🐢 La carapace est à</span>
+      <span class="parole__nom" id="parole-nom"></span>
+    </div>
+
+    <div class="outils">
+      <button class="bouton" id="btn-carte" title="Jouer une carte depuis cet écran">🎴 Carte</button>
+      <button class="bouton" id="btn-annuler" title="Annuler le dernier coup joué">↩ Annuler</button>
+      <button class="bouton bouton--danger" id="btn-reset" title="Remettre le kart à la ligne de départ">⟲ Reset</button>
+      <button class="bouton" id="btn-plein-ecran" title="Plein écran">⛶</button>
+    </div>
+  </footer>
+</div>
+
+<canvas class="confettis" id="confettis"></canvas>
+<div class="alerte" id="alerte" hidden></div>
+<div class="badge-demo" id="badge-demo" hidden>Mode démo — cet écran seulement</div>
+
+<div class="tiroir" id="tiroir" hidden>
+  <div class="tiroir__contenu">
+    <h2 class="tiroir__titre">Jouer une carte depuis cet écran</h2>
+    <p class="tiroir__aide">Pratique pour lancer la démo, dépanner un collègue dont le téléphone fait la tête, ou animer entièrement au clavier.</p>
+    <div class="section" style="margin-bottom:14px">
+      <input class="champ" id="tiroir-nom" placeholder="Au nom de qui ?" value="Animateur" maxlength="30">
+      <input class="champ" id="tiroir-note" placeholder="Le post-it qui va avec (facultatif)" maxlength="200">
+    </div>
+    <div class="cartes" id="tiroir-cartes"></div>
+    <div style="display:flex; gap:8px; margin-top:16px">
+      <button class="bouton" id="tiroir-fermer">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<script src="vendor/qrcode.min.js"></script>
+<script src="config.js"></script>
+<script src="api.js"></script>
+<script src="fx.js"></script>
+<script src="qr.js"></script>
+<script src="track.js"></script>
+<script src="host.js"></script>
+</body>
+</html>
