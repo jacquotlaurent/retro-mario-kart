@@ -32,7 +32,9 @@
   var nom = '';
   var carteChoisie = null;
   var etat = null;
-  var aEnvoye = false;
+  var dejaVu = false;      // le prénom a déjà été vu dans la liste des pilotes
+  var parti = false;       // sorti de la course, volontairement ou non
+  var pingPresence = null;
 
   try { nom = localStorage.getItem(STORAGE_NOM) || ''; } catch (_) {}
 
@@ -107,7 +109,6 @@
 
     client.play(entree.card_id, nom, entree.note).then(function () {
       entree.envoye = true;
-      aEnvoye = true;
       sauverMain();
       window.RetroFx.vibrate(card.delta >= 0 ? [16, 50, 16] : [60]);
       renderMain();
@@ -205,7 +206,7 @@
     });
 
     $('main-vide').hidden = main.length > 0;
-    $('bloc-carapace').hidden = !(aEnvoye || (etat && etat.speaker === nom));
+    $('bloc-carapace').hidden = !(etat && (etat.players || []).length > 1);
 
     var preparer = $('btn-preparer');
     preparer.textContent = enAttente ? '+ Préparer une autre carte' : '+ Préparer une carte';
@@ -260,20 +261,32 @@
 
   // ─── Passage de parole ───────────────────────────────────────────────────
 
-  function renderJoueurs(players) {
+  var signatureJoueurs = null;
+
+  function renderJoueurs(players, orateur) {
     var zone = $('puces-joueurs');
+    var signature = (players || []).join('|') + '→' + (orateur || '');
+    if (signature === signatureJoueurs) return;   // sinon on reconstruit 80 fois par minute
+    signatureJoueurs = signature;
+
     zone.innerHTML = '';
     (players || []).forEach(function (p) {
       if (p === nom) return;
       var puce = document.createElement('button');
       puce.type = 'button';
-      puce.className = 'puce';
-      puce.textContent = p;
+      puce.className = 'puce' + (p === orateur ? ' puce--actif' : '');
+      puce.textContent = (p === orateur ? '🐢 ' : '') + p;
       puce.addEventListener('click', function () {
+        if (p === orateur) return;
+        puce.classList.add('puce--envoi');
+        puce.textContent = '⏳ ' + p;
         client.pass(p).then(function () {
-          puce.classList.add('puce--actif');
           window.RetroFx.vibrate([10, 40, 10]);
-        }).catch(signalerErreur);
+        }).catch(function (err) {
+          puce.classList.remove('puce--envoi');
+          puce.textContent = p;
+          signalerErreur(err);
+        });
       });
       zone.appendChild(puce);
     });
@@ -321,12 +334,27 @@
     var cartes = (state.deck || []).slice().sort(function (a, b) { return a.ordinal - b.ordinal; });
     renderCartes(cartes);
     renderFlux(state.events);
-    renderJoueurs(state.players);
+    renderJoueurs(state.players, state.speaker);
+
+    // L'animateur a remis le plateau à zéro : les cartes de la main portaient
+    // encore la mention « envoyée » alors que le circuit est vide. On les rend
+    // à nouveau jouables plutôt que de laisser le pilote devant une main morte.
+    if (deckConnu && !(state.events || []).length && main.some(function (e) { return e.envoye; })) {
+      main.forEach(function (e) { e.envoye = false; });
+      sauverMain();
+      renderMain();
+    }
+
+    // Retiré de la course par l'animateur : on ne le découvre qu'en constatant
+    // que le prénom a disparu de la liste après y avoir figuré.
+    var present = (state.players || []).indexOf(nom) !== -1;
+    if (nom && present) dejaVu = true;
+    else if (nom && dejaVu && !parti) quitter(false);
 
     // La main ne peut s'afficher qu'une fois le paquet connu : c'est lui qui
     // porte les emoji, les libellés et le barème.
     if (!deckConnu && cartes.length) { deckConnu = true; renderMain(); }
-    else if (deckConnu) { $('bloc-carapace').hidden = !(aEnvoye || state.speaker === nom); }
+    else if (deckConnu) { $('bloc-carapace').hidden = !((state.players || []).length > 1); }
 
     var parole = $('tour-de-parole');
     if (state.speaker === nom) {
@@ -341,10 +369,36 @@
   // ─── Étapes ──────────────────────────────────────────────────────────────
 
   function montrer(etape) {
-    ['etape-nom', 'etape-main', 'etape-choix'].forEach(function (id) {
+    ['etape-nom', 'etape-main', 'etape-choix', 'etape-parti'].forEach(function (id) {
       $(id).hidden = id !== etape;
     });
-    $('bloc-flux').hidden = etape === 'etape-nom';
+    $('bloc-flux').hidden = etape === 'etape-nom' || etape === 'etape-parti';
+  }
+
+  /** Sortie de course : de son plein gré, ou retiré par l'animateur. */
+  function quitter(volontaire) {
+    parti = true;
+    dejaVu = false;
+    arreterPresence();
+    $('raison-depart').textContent = volontaire
+      ? 'Tu ne figures plus parmi les pilotes. Les cartes que tu as déjà envoyées restent sur le circuit.'
+      : 'L\'animateur t\'a retiré de la course. Les cartes que tu as déjà envoyées restent sur le circuit.';
+    montrer('etape-parti');
+  }
+
+  /* Sans ce rappel, un pilote qui écoute sans rien jouer disparaît de la liste
+     au bout d'un quart d'heure : c'est le délai au-delà duquel la base cesse
+     de le considérer comme présent. */
+  function demarrerPresence() {
+    if (pingPresence) return;
+    pingPresence = setInterval(function () {
+      if (parti || !nom || document.hidden) return;
+      client.join(nom).catch(function () {});
+    }, 120000);
+  }
+
+  function arreterPresence() {
+    if (pingPresence) { clearInterval(pingPresence); pingPresence = null; }
   }
 
   function rejoindre() {
@@ -353,15 +407,16 @@
     nom = saisi;
     try { localStorage.setItem(STORAGE_NOM, nom); } catch (_) {}
     window.RetroFx.unlockAudio();
+    parti = false;
     montrer('etape-main');
     renderMain();
     client.join(nom).catch(signalerErreur);
+    demarrerPresence();
   }
 
   // ─── Démarrage ───────────────────────────────────────────────────────────
 
   main = chargerMain();
-  aEnvoye = main.some(function (e) { return e.envoye; });
 
   $('badge-demo').hidden = !demo;
   $('hud-code').textContent = code;
@@ -376,6 +431,19 @@
   });
 
   $('btn-retour').addEventListener('click', function () { montrer('etape-main'); });
+
+  $('btn-quitter').addEventListener('click', function () {
+    if (!confirm('Quitter la course ? Tu peux revenir à tout moment.')) return;
+    client.leave(nom).catch(signalerErreur).then(function () { quitter(true); });
+  });
+
+  $('btn-revenir').addEventListener('click', function () {
+    parti = false;
+    montrer('etape-main');
+    renderMain();
+    client.join(nom).catch(signalerErreur);
+    demarrerPresence();
+  });
 
   $('btn-ajouter').addEventListener('click', function () {
     if (!carteChoisie) return;
@@ -403,4 +471,5 @@
   client.join(nom || null).catch(signalerErreur).then(function () { client.startPolling(); });
 
   montrer(nom ? 'etape-main' : 'etape-nom');
+  if (nom) demarrerPresence();
 })();

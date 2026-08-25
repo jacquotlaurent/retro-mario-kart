@@ -50,6 +50,8 @@
 
     <button class="bouton bouton--principal bouton--large" id="btn-preparer">+ Préparer une carte</button>
 
+    <button class="bouton lien-discret" id="btn-quitter">Quitter la course</button>
+
     <div class="section" id="bloc-carapace" hidden>
       <h2 class="tel__titre">🐢 Passe la carapace</h2>
       <p class="tel__aide">Désigne qui prend la parole après toi.</p>
@@ -57,7 +59,15 @@
     </div>
   </section>
 
-  <!-- 3. Choisir une carte à préparer -->
+  <!-- 3. Sorti de la course -->
+  <section class="section" id="etape-parti" hidden>
+    <h1 class="tel__titre">🏁 Tu es sorti de la course</h1>
+    <p class="tel__aide" id="raison-depart"></p>
+    <p class="tel__aide">Ta main préparée est conservée : tu la retrouveras si tu reviens.</p>
+    <button class="bouton bouton--principal bouton--large" id="btn-revenir">Rejoindre à nouveau</button>
+  </section>
+
+  <!-- 4. Choisir une carte à préparer -->
   <section class="section" id="etape-choix" hidden>
     <h2 class="tel__titre">Choisis ton objet</h2>
     <div class="cartes" id="cartes"></div>

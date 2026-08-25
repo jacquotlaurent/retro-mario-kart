@@ -112,6 +112,9 @@
       s.speaker = body.p_name;
     } else if (fn === 'retro_pass') {
       s.speaker = body.p_name;
+    } else if (fn === 'retro_leave') {
+      s.players = s.players.filter(function (n) { return n !== body.p_name; });
+      if (s.speaker === body.p_name) s.speaker = null;
     } else if (fn === 'retro_undo') {
       for (var i = 0; i < s.events.length; i++) {
         if (!s.events[i].undone) { s.events[i].undone = true; total = Math.max(0, total - s.events[i].delta); break; }
@@ -170,6 +173,7 @@
   RetroClient.prototype.join   = function (name)       { return this.call('retro_join', { p_name: name || null }); };
   RetroClient.prototype.play   = function (card, name, note) { return this.call('retro_play', { p_name: name, p_card: card, p_note: note || null }); };
   RetroClient.prototype.pass   = function (name)       { return this.call('retro_pass', { p_name: name }); };
+  RetroClient.prototype.leave  = function (name)       { return this.call('retro_leave', { p_name: name }); };
   RetroClient.prototype.undo   = function ()           { return this.call('retro_undo'); };
   RetroClient.prototype.reset  = function ()           { return this.call('retro_reset'); };
   RetroClient.prototype.refresh = function ()          { return this.call('retro_state'); };

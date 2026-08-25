@@ -36,7 +36,7 @@
   var deck = {};
   var lastEventId = 0;
   var lastLap = 0;
-  var lastSignature = '';
+  var lastSignature = null;   // null, jamais '' : '' est la signature d'un plateau vide
   var premierRendu = true;
 
   // ─── Rendu ───────────────────────────────────────────────────────────────
@@ -75,9 +75,16 @@
     }
   }
 
+  var BANDEAU_REPOS =
+    '<div class="dernier-coup__objet">🏁</div>' +
+    '<div class="dernier-coup__texte">' +
+      '<div class="dernier-coup__ligne">En attente du premier pilote…</div>' +
+      '<div class="dernier-coup__note">Chacun scanne le QR code, prépare sa main et raconte.</div>' +
+    '</div>';
+
   function renderDernierCoup(event) {
     var zone = $('dernier-coup');
-    if (!event) return;
+    if (!event) { zone.innerHTML = BANDEAU_REPOS; return; }
     var card = deck[event.card_id] || {};
     zone.innerHTML = '';
 
@@ -124,12 +131,16 @@
 
     $('valeur-case').innerHTML = state.position + '<span style="font-size:.55em">/' + state.casesPerLap + '</span>';
     $('valeur-tour').textContent = state.lap;
-    $('valeur-pilotes').textContent = (state.players || []).length;
-
-    if (state.speaker) {
-      $('parole').hidden = false;
-      $('parole-nom').textContent = state.speaker;
+    var pilotes = state.players || [];
+    $('valeur-pilotes').textContent = pilotes.length;
+    var signature2 = pilotes.join('|');
+    if (signature2 !== signaturePilotes) {
+      signaturePilotes = signature2;
+      renderPilotes(pilotes);
     }
+
+    $('parole').hidden = !state.speaker;
+    if (state.speaker) $('parole-nom').textContent = state.speaker;
 
     var events = state.events || [];
     var signature = events.map(function (e) { return e.id + (e.undone ? 'x' : ''); }).join(',');
@@ -157,6 +168,48 @@
     }
     lastLap = state.lap;
     premierRendu = false;
+  }
+
+  // ─── Tiroir des pilotes ──────────────────────────────────────────────────
+
+  var signaturePilotes = null;
+
+  function renderPilotes(players) {
+    var zone = $('liste-pilotes');
+    zone.innerHTML = '';
+
+    if (!players.length) {
+      var vide = document.createElement('p');
+      vide.className = 'tiroir__aide';
+      vide.textContent = 'Personne n\'a encore rejoint la course.';
+      zone.appendChild(vide);
+      return;
+    }
+
+    players.forEach(function (nom) {
+      var ligne = document.createElement('li');
+      ligne.className = 'pilote';
+
+      var etiquette = document.createElement('span');
+      etiquette.className = 'pilote__nom';
+      etiquette.textContent = nom;
+      ligne.appendChild(etiquette);
+
+      var retirer = document.createElement('button');
+      retirer.type = 'button';
+      retirer.className = 'bouton bouton--danger';
+      retirer.textContent = 'Retirer';
+      retirer.addEventListener('click', function () {
+        retirer.disabled = true;
+        client.leave(nom).catch(function (err) {
+          retirer.disabled = false;
+          signalerErreur(err);
+        });
+      });
+      ligne.appendChild(retirer);
+
+      zone.appendChild(ligne);
+    });
   }
 
   // ─── Tiroir « jouer une carte » ──────────────────────────────────────────
@@ -221,7 +274,7 @@
   $('btn-annuler').addEventListener('click', function () { client.undo().catch(signalerErreur); });
   $('btn-reset').addEventListener('click', function () {
     if (confirm('Remettre le kart sur la ligne de départ et effacer tous les post-its ?')) {
-      lastEventId = 0; lastLap = 0; lastSignature = ''; premierRendu = true;
+      lastEventId = 0; lastLap = 0; lastSignature = null; premierRendu = true;
       client.reset().catch(signalerErreur);
     }
   });
@@ -231,6 +284,11 @@
     $('tiroir-note').focus();
   });
   $('tiroir-fermer').addEventListener('click', function () { $('tiroir').hidden = true; });
+  $('btn-pilotes').addEventListener('click', function () { $('tiroir-pilotes').hidden = false; });
+  $('pilotes-fermer').addEventListener('click', function () { $('tiroir-pilotes').hidden = true; });
+  $('tiroir-pilotes').addEventListener('click', function (e) {
+    if (e.target === $('tiroir-pilotes')) $('tiroir-pilotes').hidden = true;
+  });
   $('tiroir').addEventListener('click', function (e) { if (e.target === $('tiroir')) $('tiroir').hidden = true; });
   $('btn-plein-ecran').addEventListener('click', function () {
     if (document.fullscreenElement) document.exitFullscreen();

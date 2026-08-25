@@ -27,10 +27,10 @@
         <div class="compteur__valeur" id="valeur-tour">0</div>
         <div class="compteur__label">Tours bouclés</div>
       </div>
-      <div class="compteur">
+      <button class="compteur compteur--bouton" id="btn-pilotes" title="Voir et retirer des pilotes">
         <div class="compteur__valeur" id="valeur-pilotes">0</div>
         <div class="compteur__label">Pilotes</div>
-      </div>
+      </button>
     </div>
 
     <div class="rejoindre">
@@ -64,7 +64,7 @@
       <div class="dernier-coup__objet">🏁</div>
       <div class="dernier-coup__texte">
         <div class="dernier-coup__ligne">En attente du premier pilote…</div>
-        <div class="dernier-coup__note">Chacun scanne le QR code, choisit une carte et raconte.</div>
+        <div class="dernier-coup__note">Chacun scanne le QR code, prépare sa main et raconte.</div>
       </div>
     </div>
 
@@ -85,6 +85,18 @@
 <canvas class="confettis" id="confettis"></canvas>
 <div class="alerte" id="alerte" hidden></div>
 <div class="badge-demo" id="badge-demo" hidden>Mode démo — cet écran seulement</div>
+
+<div class="tiroir" id="tiroir-pilotes" hidden>
+  <div class="tiroir__contenu tiroir__contenu--etroit">
+    <h2 class="tiroir__titre">Les pilotes de la course</h2>
+    <p class="tiroir__aide">Retirer quelqu'un le sort de la liste et libère la parole s'il l'avait.
+      Ses post-its restent sur le plateau : ils font partie de la rétro. Il peut revenir en rescannant le QR code.</p>
+    <ul class="pilotes" id="liste-pilotes"></ul>
+    <div style="display:flex; gap:8px; margin-top:16px">
+      <button class="bouton" id="pilotes-fermer">Fermer</button>
+    </div>
+  </div>
+</div>
 
 <div class="tiroir" id="tiroir" hidden>
   <div class="tiroir__contenu">

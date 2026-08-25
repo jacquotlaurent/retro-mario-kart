@@ -229,7 +229,22 @@ h1, h2, h3, .pixel { font-family: var(--pixel); font-weight: 400; letter-spacing
   background: var(--nuit-clair); border: 2px solid var(--bord); border-radius: 18px;
   padding: 22px; width: min(880px, 100%); max-height: 90vh; overflow: auto;
 }
+.tiroir__contenu--etroit { width: min(520px, 100%); }
 .tiroir__titre { font-size: 13px; color: var(--or); margin: 0 0 6px; }
+
+.pilotes { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.pilote {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  background: var(--carte); border: 2px solid var(--bord); border-radius: 12px;
+  padding: 10px 14px;
+}
+.pilote__nom { font-size: 15px; }
+
+.compteur--bouton {
+  font-family: inherit; cursor: pointer;
+  transition: border-color .12s ease, transform .12s ease;
+}
+.compteur--bouton:hover { border-color: var(--or); transform: translateY(-2px); }
 .tiroir__aide { font-size: 13px; color: var(--texte-doux); margin: 0 0 16px; }
 
 /* ─── Les cartes (partagé animateur / smartphone) ──────────────────────── */
@@ -291,7 +306,15 @@ textarea.champ { resize: none; min-height: 76px; }
   background: var(--carte); border: 2px solid var(--bord); border-radius: 999px;
   padding: 9px 15px; font-size: 14px; color: var(--texte); cursor: pointer;
 }
-.puce--actif { border-color: var(--or); color: var(--or); }
+.puce--actif { border-color: var(--or); color: var(--or); background: #2b3358; font-weight: 700; }
+.puce--envoi { opacity: .6; }
+
+.lien-discret {
+  background: transparent; border-color: transparent;
+  color: var(--texte-doux); font-size: 13px; padding: 8px;
+  align-self: center;
+}
+.lien-discret:hover { border-color: var(--bord); color: var(--texte); transform: none; }
 
 /* ─── La main préparée (téléphone) ─────────────────────────────────────── */
 
