@@ -36,29 +36,39 @@
     <button class="bouton bouton--principal bouton--large" id="btn-rejoindre">Rejoindre la course</button>
   </section>
 
-  <!-- 2. Jouer -->
-  <section class="section" id="etape-jeu" hidden>
+  <!-- 2. Ma main : les cartes préparées, envoyées une par une -->
+  <section class="section" id="etape-main" hidden>
     <p class="tel__aide" id="tour-de-parole"></p>
+
+    <h2 class="tel__titre">🎴 Ma main</h2>
+    <p class="tel__aide" id="main-vide">
+      Prépare tes cartes tranquillement, dès maintenant. Personne ne les voit :
+      elles ne partent sur le grand écran que lorsque tu les envoies, une par une,
+      pendant ton tour de parole.
+    </p>
+    <ul class="main" id="main"></ul>
+
+    <button class="bouton bouton--principal bouton--large" id="btn-preparer">+ Préparer une carte</button>
+
+    <div class="section" id="bloc-carapace" hidden>
+      <h2 class="tel__titre">🐢 Passe la carapace</h2>
+      <p class="tel__aide">Désigne qui prend la parole après toi.</p>
+      <div class="puces" id="puces-joueurs"></div>
+    </div>
+  </section>
+
+  <!-- 3. Choisir une carte à préparer -->
+  <section class="section" id="etape-choix" hidden>
     <h2 class="tel__titre">Choisis ton objet</h2>
     <div class="cartes" id="cartes"></div>
     <textarea class="champ" id="champ-note" maxlength="200"
               placeholder="Le post-it qui va avec — ex. « la CI qui casse tous les matins »"></textarea>
-    <button class="bouton bouton--principal bouton--large" id="btn-jouer" disabled>Choisis une carte</button>
+    <button class="bouton bouton--principal bouton--large" id="btn-ajouter" disabled>Choisis une carte</button>
+    <button class="bouton bouton--large" id="btn-envoyer-direct" disabled>⚡ Envoyer tout de suite</button>
+    <button class="bouton bouton--large" id="btn-retour">Retour à ma main</button>
   </section>
 
-  <!-- 3. Confirmation + passage de parole -->
-  <section class="section" id="etape-apres" hidden>
-    <div class="confirmation">
-      <div class="confirmation__objet" id="confirm-objet">⭐</div>
-      <div class="confirmation__texte" id="confirm-texte"></div>
-    </div>
-    <h2 class="tel__titre">🐢 Passe la carapace</h2>
-    <p class="tel__aide">Désigne qui prend la parole après toi.</p>
-    <div class="puces" id="puces-joueurs"></div>
-    <button class="bouton bouton--large" id="btn-rejouer">Jouer une autre carte</button>
-  </section>
-
-  <div class="section">
+  <div class="section" id="bloc-flux" hidden>
     <h2 class="tel__titre" style="font-size:11px">Sur le circuit</h2>
     <ul class="flux" id="flux"></ul>
   </div>

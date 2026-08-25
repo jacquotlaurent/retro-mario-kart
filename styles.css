@@ -293,6 +293,44 @@ textarea.champ { resize: none; min-height: 76px; }
 }
 .puce--actif { border-color: var(--or); color: var(--or); }
 
+/* ─── La main préparée (téléphone) ─────────────────────────────────────── */
+
+.main { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+
+.carte-main {
+  background: var(--carte);
+  border: 2px solid var(--bord);
+  border-radius: 14px;
+  padding: 12px 13px;
+  display: flex; flex-direction: column; gap: 10px;
+  animation: postit-arrive .3s ease both;
+}
+.carte-main--envoyee { opacity: .5; border-style: dashed; }
+
+.carte-main__haut { display: flex; gap: 12px; align-items: flex-start; }
+.carte-main__objet { font-size: 30px; line-height: 1.1; flex: 0 0 auto; }
+.carte-main__texte { min-width: 0; flex: 1; }
+.carte-main__titre { font-size: 15px; font-weight: 700; }
+.carte-main__titre span {
+  font-family: var(--pixel); font-size: 11px; margin-left: 4px;
+  white-space: nowrap;   /* « +2 cases » ne doit jamais se couper en deux lignes */
+}
+.carte-main__note { font-size: 13px; color: var(--texte-doux); margin-top: 4px; line-height: 1.4; }
+
+.carte-main__bas { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.carte-main__bas .bouton--principal { padding: 11px 22px; font-size: 15px; }
+.carte-main__outils { display: flex; gap: 6px; }
+.carte-main__fait { font-size: 13px; color: var(--vert); font-weight: 700; }
+
+.mini {
+  background: transparent; color: var(--texte-doux);
+  border: 2px solid var(--bord); border-radius: 9px;
+  width: 38px; height: 38px; font-size: 15px; cursor: pointer;
+  font-family: var(--texte-police);
+}
+.mini:hover  { border-color: var(--or); color: var(--texte); }
+.mini--danger:hover { border-color: var(--rouge); color: var(--rouge); }
+
 .flux { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .flux li { font-size: 13px; color: var(--texte-doux); display: flex; gap: 8px; align-items: baseline; }
 .flux li b { color: var(--texte); font-weight: 600; }
