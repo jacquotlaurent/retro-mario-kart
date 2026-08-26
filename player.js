@@ -109,7 +109,7 @@
     // de rebondir.
     var orateur = etat && etat.speaker;
     if (orateur && orateur !== nom &&
-        !confirm(orateur + ' a la carapace. Envoyer ' + card.emoji + ' ' + card.label +
+        !confirm(orateur + ' a la manette. Envoyer ' + card.emoji + ' ' + card.label +
                  ' quand même, sans attendre ton tour ?')) {
       return;
     }
@@ -216,7 +216,7 @@
     });
 
     $('main-vide').hidden = main.length > 0;
-    $('bloc-carapace').hidden = !(etat && (etat.players || []).length > 1);
+    $('bloc-manette').hidden = !(etat && (etat.players || []).length > 1);
 
     var preparer = $('btn-preparer');
     preparer.textContent = enAttente ? '+ Préparer une autre carte' : '+ Préparer une carte';
@@ -278,20 +278,20 @@
     ontParle = ontParle || [];
     // Le prénom du porteur fait partie de la signature : il s'exclut lui-même
     // de la liste, et sans ça un rechargement après coup laissait sa propre
-    // puce affichée — on pouvait se passer la carapace à soi-même.
+    // puce affichée — on pouvait se passer la manette à soi-même.
     var signature = nom + '@' + (players || []).join('|') + '→' + (orateur || '') + '✓' + ontParle.join('|');
     if (signature === signatureJoueurs) return;   // sinon on reconstruit 80 fois par minute
     signatureJoueurs = signature;
 
     // Ceux qui n'ont pas encore parlé d'abord : c'est à eux qu'on pense en
-    // premier au moment de passer la carapace.
+    // premier au moment de passer la manette.
     var candidats = (players || []).filter(function (p) { return p !== nom; });
     candidats.sort(function (a, b) {
       return (ontParle.indexOf(a) !== -1 ? 1 : 0) - (ontParle.indexOf(b) !== -1 ? 1 : 0);
     });
 
     var restants = candidats.filter(function (p) { return ontParle.indexOf(p) === -1; }).length;
-    $('aide-carapace').textContent = restants
+    $('aide-manette').textContent = restants
       ? restants + (restants > 1 ? ' pilotes n\'ont' : ' pilote n\'a') + ' pas encore parlé.'
       : 'Tout le monde a déjà parlé — à toi de voir.';
 
@@ -301,7 +301,7 @@
       var puce = document.createElement('button');
       puce.type = 'button';
       puce.className = 'puce' + (p === orateur ? ' puce--actif' : (dejaParle ? ' puce--parle' : ''));
-      puce.textContent = (p === orateur ? '🐢 ' : (dejaParle ? '✓ ' : '')) + p;
+      puce.textContent = (p === orateur ? '🎮 ' : (dejaParle ? '✓ ' : '')) + p;
       puce.addEventListener('click', function () {
         if (p === orateur) return;
         puce.classList.add('puce--envoi');
@@ -317,7 +317,7 @@
       zone.appendChild(puce);
     });
     if (!zone.childElementCount) {
-      $('aide-carapace').textContent = '';
+      $('aide-manette').textContent = '';
       var vide = document.createElement('p');
       vide.className = 'tel__aide';
       vide.textContent = 'Tu es seul·e connecté·e pour l\'instant — les autres apparaîtront ici dès qu\'ils rejoindront.';
@@ -381,13 +381,13 @@
     // La main ne peut s'afficher qu'une fois le paquet connu : c'est lui qui
     // porte les emoji, les libellés et le barème.
     if (!deckConnu && cartes.length) { deckConnu = true; renderMain(); }
-    else if (deckConnu) { $('bloc-carapace').hidden = !((state.players || []).length > 1); }
+    else if (deckConnu) { $('bloc-manette').hidden = !((state.players || []).length > 1); }
 
     var parole = $('tour-de-parole');
     if (state.speaker === nom) {
-      parole.innerHTML = '🐢 <strong style="color:var(--or)">C\'est à toi — envoie tes cartes.</strong>';
+      parole.innerHTML = '🎮 <strong style="color:var(--or)">C\'est à toi — envoie tes cartes.</strong>';
     } else if (state.speaker) {
-      parole.textContent = '🐢 ' + state.speaker + ' a la parole. Prépare ta main en attendant.';
+      parole.textContent = '🎮 ' + state.speaker + ' a la parole. Prépare ta main en attendant.';
     } else {
       parole.textContent = 'Personne n\'a encore pris la parole. Prépare ta main.';
     }

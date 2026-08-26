@@ -326,7 +326,7 @@ textarea.champ { resize: none; min-height: 76px; }
 }
 .puce--actif { border-color: var(--or); color: var(--or); background: #2b3358; font-weight: 700; }
 .puce--envoi { opacity: .6; }
-/* Déjà passé au micro : on peut toujours lui redonner la carapace, mais le
+/* Déjà passé au micro : on peut toujours lui redonner la manette, mais le
    regard va d'abord vers ceux qui n'ont pas encore parlé. */
 .puce--parle { opacity: .5; border-style: dashed; }
 
