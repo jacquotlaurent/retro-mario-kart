@@ -27,7 +27,7 @@
   var STORAGE_MAIN = 'retro-mario-kart-main-' + code;
 
   var demo = window.Retro.isDemo();
-  var client = new window.Retro.Client({ code: code, demo: demo });
+  var client = new window.Retro.Client({ code: code, demo: demo, eventsLimit: 12 });
   var deck = {};
   var nom = '';
   var carteChoisie = null;
@@ -103,6 +103,16 @@
     if (!entree || entree.envoye) return;
     var card = deck[entree.card_id];
     if (!card) return;
+
+    // Envoyer alors que quelqu'un d'autre a la parole coupe son récit : on
+    // demande confirmation plutôt que d'interdire, il y a de bonnes raisons
+    // de rebondir.
+    var orateur = etat && etat.speaker;
+    if (orateur && orateur !== nom &&
+        !confirm(orateur + ' a la carapace. Envoyer ' + card.emoji + ' ' + card.label +
+                 ' quand même, sans attendre ton tour ?')) {
+      return;
+    }
 
     bouton.disabled = true;
     bouton.textContent = 'Envoi…';
@@ -263,19 +273,35 @@
 
   var signatureJoueurs = null;
 
-  function renderJoueurs(players, orateur) {
+  function renderJoueurs(players, orateur, ontParle) {
     var zone = $('puces-joueurs');
-    var signature = (players || []).join('|') + '→' + (orateur || '');
+    ontParle = ontParle || [];
+    // Le prénom du porteur fait partie de la signature : il s'exclut lui-même
+    // de la liste, et sans ça un rechargement après coup laissait sa propre
+    // puce affichée — on pouvait se passer la carapace à soi-même.
+    var signature = nom + '@' + (players || []).join('|') + '→' + (orateur || '') + '✓' + ontParle.join('|');
     if (signature === signatureJoueurs) return;   // sinon on reconstruit 80 fois par minute
     signatureJoueurs = signature;
 
+    // Ceux qui n'ont pas encore parlé d'abord : c'est à eux qu'on pense en
+    // premier au moment de passer la carapace.
+    var candidats = (players || []).filter(function (p) { return p !== nom; });
+    candidats.sort(function (a, b) {
+      return (ontParle.indexOf(a) !== -1 ? 1 : 0) - (ontParle.indexOf(b) !== -1 ? 1 : 0);
+    });
+
+    var restants = candidats.filter(function (p) { return ontParle.indexOf(p) === -1; }).length;
+    $('aide-carapace').textContent = restants
+      ? restants + (restants > 1 ? ' pilotes n\'ont' : ' pilote n\'a') + ' pas encore parlé.'
+      : 'Tout le monde a déjà parlé — à toi de voir.';
+
     zone.innerHTML = '';
-    (players || []).forEach(function (p) {
-      if (p === nom) return;
+    candidats.forEach(function (p) {
+      var dejaParle = ontParle.indexOf(p) !== -1;
       var puce = document.createElement('button');
       puce.type = 'button';
-      puce.className = 'puce' + (p === orateur ? ' puce--actif' : '');
-      puce.textContent = (p === orateur ? '🐢 ' : '') + p;
+      puce.className = 'puce' + (p === orateur ? ' puce--actif' : (dejaParle ? ' puce--parle' : ''));
+      puce.textContent = (p === orateur ? '🐢 ' : (dejaParle ? '✓ ' : '')) + p;
       puce.addEventListener('click', function () {
         if (p === orateur) return;
         puce.classList.add('puce--envoi');
@@ -291,6 +317,7 @@
       zone.appendChild(puce);
     });
     if (!zone.childElementCount) {
+      $('aide-carapace').textContent = '';
       var vide = document.createElement('p');
       vide.className = 'tel__aide';
       vide.textContent = 'Tu es seul·e connecté·e pour l\'instant — les autres apparaîtront ici dès qu\'ils rejoindront.';
@@ -334,7 +361,7 @@
     var cartes = (state.deck || []).slice().sort(function (a, b) { return a.ordinal - b.ordinal; });
     renderCartes(cartes);
     renderFlux(state.events);
-    renderJoueurs(state.players, state.speaker);
+    renderJoueurs(state.players, state.speaker, state.spoken);
 
     // L'animateur a remis le plateau à zéro : les cartes de la main portaient
     // encore la mention « envoyée » alors que le circuit est vide. On les rend

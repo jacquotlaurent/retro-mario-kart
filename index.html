@@ -44,7 +44,7 @@
 
   <main class="plateau">
     <aside class="colonne colonne--positif">
-      <h2 class="colonne__titre">Ce qui nous a fait avancer</h2>
+      <h2 class="colonne__titre">Ce qui nous a fait avancer <span class="colonne__compte" id="compte-positifs"></span></h2>
       <div class="postits" id="postits-positifs"></div>
     </aside>
 
@@ -54,7 +54,7 @@
     </section>
 
     <aside class="colonne colonne--negatif">
-      <h2 class="colonne__titre">Ce qui nous a freinés</h2>
+      <h2 class="colonne__titre">Ce qui nous a freinés <span class="colonne__compte" id="compte-negatifs"></span></h2>
       <div class="postits" id="postits-negatifs"></div>
     </aside>
   </main>
@@ -75,6 +75,7 @@
 
     <div class="outils">
       <button class="bouton" id="btn-carte" title="Jouer une carte depuis cet écran">🎴 Carte</button>
+      <button class="bouton" id="btn-export" title="Télécharger tous les tickets en CSV">⭳ Export</button>
       <button class="bouton" id="btn-annuler" title="Annuler le dernier coup joué">↩ Annuler</button>
       <button class="bouton bouton--danger" id="btn-reset" title="Remettre le kart à la ligne de départ">⟲ Reset</button>
       <button class="bouton" id="btn-plein-ecran" title="Plein écran">⛶</button>

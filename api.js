@@ -71,14 +71,21 @@
     } catch (_) {}
     return {
       exists: true, code: code, position: 0, lap: 0, casesPerLap: 20,
-      speaker: null, players: [], events: [], nextId: 1,
+      speaker: null, players: [], spoken: [], events: [], nextId: 1,
       deck: (window.RETRO_DEMO_DECK || []).slice(),
     };
   };
 
-  DemoBackend.prototype.save = function () {
+  DemoBackend.prototype.save = function (limite) {
     try { localStorage.setItem(this.storageKey, JSON.stringify(this.state)); } catch (_) {}
-    return JSON.parse(JSON.stringify(this.state));
+    var copie = JSON.parse(JSON.stringify(this.state));
+    copie.eventsTotal = copie.events.length;
+    if (limite) copie.events = copie.events.slice(0, limite);
+    return copie;
+  };
+
+  DemoBackend.prototype.aParle = function (name) {
+    if (name && this.state.spoken.indexOf(name) === -1) this.state.spoken.push(name);
   };
 
   DemoBackend.prototype.card = function (id) {
@@ -94,6 +101,7 @@
 
   DemoBackend.prototype.rpc = function (fn, body) {
     var s = this.state, self = this;
+    if (!s.spoken) s.spoken = [];
     var total = s.lap * s.casesPerLap + s.position;
 
     if (fn === 'retro_join') {
@@ -108,10 +116,12 @@
         note: (body.p_note || '').slice(0, 200) || null, undone: false,
         created_at: new Date().toISOString(),
       });
-      s.events = s.events.slice(0, 40);
+      s.events = s.events.slice(0, 200);
       s.speaker = body.p_name;
+      self.aParle(body.p_name);
     } else if (fn === 'retro_pass') {
       s.speaker = body.p_name;
+      self.aParle(body.p_name);
     } else if (fn === 'retro_leave') {
       s.players = s.players.filter(function (n) { return n !== body.p_name; });
       if (s.speaker === body.p_name) s.speaker = null;
@@ -120,12 +130,12 @@
         if (!s.events[i].undone) { s.events[i].undone = true; total = Math.max(0, total - s.events[i].delta); break; }
       }
     } else if (fn === 'retro_reset') {
-      s.events = []; total = 0; s.speaker = null;
+      s.events = []; total = 0; s.speaker = null; s.spoken = [];
     }
 
     s.position = total % s.casesPerLap;
     s.lap = Math.floor(total / s.casesPerLap);
-    return Promise.resolve(self.save());
+    return Promise.resolve(self.save(body.p_limit));
   };
 
   // ─── Client : sondage + notification des écrans ──────────────────────────
@@ -133,6 +143,9 @@
   function RetroClient(opts) {
     this.code = opts.code;
     this.demo = !!opts.demo;
+    // L'écran de course en demande beaucoup pour ses colonnes défilantes, les
+    // téléphones très peu : c'est ce qui garde le sondage léger à huit.
+    this.eventsLimit = opts.eventsLimit || 40;
     this.backend = this.demo ? new DemoBackend(this.code) : new SupabaseBackend();
     this.listeners = [];
     this.errorListeners = [];
@@ -176,7 +189,12 @@
   RetroClient.prototype.leave  = function (name)       { return this.call('retro_leave', { p_name: name }); };
   RetroClient.prototype.undo   = function ()           { return this.call('retro_undo'); };
   RetroClient.prototype.reset  = function ()           { return this.call('retro_reset'); };
-  RetroClient.prototype.refresh = function ()          { return this.call('retro_state'); };
+  RetroClient.prototype.refresh = function ()          { return this.call('retro_state', { p_limit: this.eventsLimit }); };
+
+  /** Récupère l'historique complet sans le diffuser aux écrans : sert à l'export. */
+  RetroClient.prototype.fetchAll = function () {
+    return this.backend.rpc('retro_state', { p_code: this.code, p_limit: 1000 });
+  };
 
   RetroClient.prototype.startPolling = function () {
     var self = this;

@@ -30,7 +30,9 @@
 
   var code = resolveCode();
   var demo = window.Retro.isDemo();
-  var client = new window.Retro.Client({ code: code, demo: demo });
+  // 200 événements : de quoi remplir les colonnes défilantes d'une rétro
+  // chargée sans alourdir inutilement chaque sondage.
+  var client = new window.Retro.Client({ code: code, demo: demo, eventsLimit: 200 });
 
   var track = null;
   var deck = {};
@@ -67,12 +69,18 @@
     positifs.innerHTML = '';
     negatifs.innerHTML = '';
     var nbPos = 0, nbNeg = 0;
+    // Aucun plafond : les colonnes défilent, on doit pouvoir remonter à un
+    // post-it du début de séance.
     for (var i = 0; i < events.length; i++) {
       var e = events[i];
       if (!e.note) continue;
-      if (e.delta >= 0 && nbPos < 8) { positifs.appendChild(postitNode(e, deck[e.card_id])); nbPos++; }
-      else if (e.delta < 0 && nbNeg < 8) { negatifs.appendChild(postitNode(e, deck[e.card_id])); nbNeg++; }
+      if (e.delta >= 0) { positifs.appendChild(postitNode(e, deck[e.card_id])); nbPos++; }
+      else { negatifs.appendChild(postitNode(e, deck[e.card_id])); nbNeg++; }
     }
+    $('compte-positifs').textContent = nbPos || '';
+    $('compte-negatifs').textContent = nbNeg || '';
+    positifs.scrollTop = 0;
+    negatifs.scrollTop = 0;
   }
 
   var BANDEAU_REPOS =
@@ -132,11 +140,12 @@
     $('valeur-case').innerHTML = state.position + '<span style="font-size:.55em">/' + state.casesPerLap + '</span>';
     $('valeur-tour').textContent = state.lap;
     var pilotes = state.players || [];
+    var ontParle = state.spoken || [];
     $('valeur-pilotes').textContent = pilotes.length;
-    var signature2 = pilotes.join('|');
+    var signature2 = pilotes.join('|') + '/' + ontParle.join('|');
     if (signature2 !== signaturePilotes) {
       signaturePilotes = signature2;
-      renderPilotes(pilotes);
+      renderPilotes(pilotes, ontParle);
     }
 
     $('parole').hidden = !state.speaker;
@@ -174,7 +183,7 @@
 
   var signaturePilotes = null;
 
-  function renderPilotes(players) {
+  function renderPilotes(players, spoken) {
     var zone = $('liste-pilotes');
     zone.innerHTML = '';
 
@@ -193,6 +202,12 @@
       var etiquette = document.createElement('span');
       etiquette.className = 'pilote__nom';
       etiquette.textContent = nom;
+      if (spoken.indexOf(nom) !== -1) {
+        var marque = document.createElement('span');
+        marque.className = 'pilote__parle';
+        marque.textContent = '✓ a déjà parlé';
+        etiquette.appendChild(marque);
+      }
       ligne.appendChild(etiquette);
 
       var retirer = document.createElement('button');
@@ -240,6 +255,52 @@
       });
   }
 
+  // ─── Export ──────────────────────────────────────────────────────────────
+
+  /* Point-virgule et BOM : c'est ce qu'attend un tableur configuré en français,
+     sinon les accents ressortent en charabia et tout atterrit dans une colonne. */
+  function champCsv(valeur) {
+    var texte = valeur === null || valeur === undefined ? '' : String(valeur);
+    return '"' + texte.replace(/"/g, '""') + '"';
+  }
+
+  function exporter() {
+    var bouton = $('btn-export');
+    bouton.disabled = true;
+    client.fetchAll().then(function (state) {
+      var evenements = (state.events || []).slice().sort(function (a, b) { return a.id - b.id; });
+      var lignes = [['horodatage', 'pilote', 'objet', 'carte', 'cases', 'note', 'annule'].join(';')];
+
+      evenements.forEach(function (e) {
+        var card = deck[e.card_id] || {};
+        lignes.push([
+          champCsv(new Date(e.created_at).toLocaleString('fr-FR')),
+          champCsv(e.player),
+          champCsv(card.emoji || ''),
+          champCsv(card.label || e.card_id),
+          champCsv(deltaTexte(e.delta)),
+          champCsv(e.note || ''),
+          champCsv(e.undone ? 'oui' : 'non'),
+        ].join(';'));
+      });
+
+      var contenu = '\uFEFF' + lignes.join('\r\n') + '\r\n';
+      var lien = document.createElement('a');
+      lien.href = URL.createObjectURL(new Blob([contenu], { type: 'text/csv;charset=utf-8' }));
+      lien.download = 'retro-' + code + '-' + new Date().toISOString().slice(0, 10) + '.csv';
+      document.body.appendChild(lien);
+      lien.click();
+      document.body.removeChild(lien);
+      setTimeout(function () { URL.revokeObjectURL(lien.href); }, 2000);
+
+      bouton.textContent = '✓ ' + evenements.length + ' ticket' + (evenements.length > 1 ? 's' : '');
+      setTimeout(function () { bouton.textContent = '⭳ Export'; bouton.disabled = false; }, 2500);
+    }).catch(function (err) {
+      bouton.disabled = false;
+      signalerErreur(err);
+    });
+  }
+
   // ─── Erreurs ─────────────────────────────────────────────────────────────
 
   function signalerErreur(err) {
@@ -271,6 +332,7 @@
   client.on(render);
   client.join(null).catch(signalerErreur).then(function () { client.startPolling(); });
 
+  $('btn-export').addEventListener('click', exporter);
   $('btn-annuler').addEventListener('click', function () { client.undo().catch(signalerErreur); });
   $('btn-reset').addEventListener('click', function () {
     if (confirm('Remettre le kart sur la ligne de départ et effacer tous les post-its ?')) {

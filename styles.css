@@ -103,7 +103,24 @@ h1, h2, h3, .pixel { font-family: var(--pixel); font-weight: 400; letter-spacing
 .colonne--positif .colonne__titre { color: var(--vert); }
 .colonne--negatif .colonne__titre { color: var(--rouge); }
 
-.postits { display: flex; flex-direction: column; gap: 9px; overflow: hidden; min-height: 0; }
+/* Les colonnes défilent : sur une rétro chargée, il faut pouvoir remonter à un
+   post-it du début de séance. */
+.postits {
+  display: flex; flex-direction: column; gap: 9px;
+  overflow-y: auto; overflow-x: hidden; min-height: 0;
+  padding-right: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bord) transparent;
+}
+.postits::-webkit-scrollbar { width: 8px; }
+.postits::-webkit-scrollbar-track { background: transparent; }
+.postits::-webkit-scrollbar-thumb { background: var(--bord); border-radius: 4px; }
+.postits::-webkit-scrollbar-thumb:hover { background: var(--texte-doux); }
+
+.colonne__compte {
+  float: right; font-family: var(--texte-police); font-size: 12px;
+  color: var(--texte-doux); letter-spacing: 0;
+}
 
 .postit {
   padding: 10px 12px;
@@ -239,6 +256,7 @@ h1, h2, h3, .pixel { font-family: var(--pixel); font-weight: 400; letter-spacing
   padding: 10px 14px;
 }
 .pilote__nom { font-size: 15px; }
+.pilote__parle { display: block; font-size: 12px; color: var(--vert); margin-top: 3px; }
 
 .compteur--bouton {
   font-family: inherit; cursor: pointer;
@@ -308,6 +326,9 @@ textarea.champ { resize: none; min-height: 76px; }
 }
 .puce--actif { border-color: var(--or); color: var(--or); background: #2b3358; font-weight: 700; }
 .puce--envoi { opacity: .6; }
+/* Déjà passé au micro : on peut toujours lui redonner la carapace, mais le
+   regard va d'abord vers ceux qui n'ont pas encore parlé. */
+.puce--parle { opacity: .5; border-style: dashed; }
 
 .lien-discret {
   background: transparent; border-color: transparent;
