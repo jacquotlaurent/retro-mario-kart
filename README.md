@@ -4,6 +4,8 @@ Le front-end de la rétrospective de sprint sur le thème Mario Kart : un circui
 projeté au mur, que chaque participant fait avancer depuis son smartphone en
 jouant une carte pendant son tour de parole.
 
+Est nécessaire à son utilisation : un téléphone par participant. Pas de création de compte. Faire reset après export pour éviter d'encombrer la base (dette technique assumée sur ce point : pas de vrai retrait des tickets à la fermeture de la session).
+
 - `index.html` — l'écran de course, à projeter
 - `play.html` — la manette des participants
 - `config.js` — l'adresse du projet Supabase et sa clé publique
