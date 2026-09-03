@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14161a" media="(prefers-color-scheme: dark)">
+<meta name="description" content="Planning Poker collaboratif : estimer ensemble, sans se laisser influencer.">
+<title>Planning Poker</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🃏</text></svg>">
+</head>
+<body>
+
+<!-- ═══ 1. Entrée : un prénom, un rôle ═══════════════════════════════════ -->
+
+<main class="accueil" id="vue-accueil" hidden>
+  <div class="accueil__carte">
+    <h1 class="accueil__titre">🃏 Planning Poker</h1>
+    <p class="accueil__sous">Estimer ensemble, sans se laisser influencer.</p>
+
+    <form class="accueil__form" id="form-accueil" autocomplete="off">
+      <label class="etiquette" for="champ-nom">Ton prénom</label>
+      <input class="champ" id="champ-nom" maxlength="40" enterkeyhint="go"
+             autocomplete="given-name" placeholder="Alex" required>
+
+      <span class="etiquette" id="titre-role">Ton rôle</span>
+      <div class="bascule" role="radiogroup" aria-labelledby="titre-role">
+        <button type="button" class="bascule__choix est-actif" id="role-participant"
+                role="radio" aria-checked="true" data-role="participant">
+          Participant<small>je vote</small>
+        </button>
+        <button type="button" class="bascule__choix" id="role-spectateur"
+                role="radio" aria-checked="false" data-role="spectateur">
+          Spectateur<small>je regarde</small>
+        </button>
+      </div>
+
+      <label class="etiquette" for="champ-code">Code de session</label>
+      <div class="accueil__ligne">
+        <input class="champ champ--code" id="champ-code" maxlength="4" placeholder="ABCD"
+               autocapitalize="characters" autocorrect="off" spellcheck="false"
+               inputmode="latin" aria-describedby="aide-code">
+        <button type="submit" class="bouton bouton--principal" id="btn-rejoindre">Rejoindre</button>
+      </div>
+      <p class="aide" id="aide-code">Quatre caractères, ou le lien d'invitation.</p>
+
+      <div class="separateur"><span>ou</span></div>
+      <button type="button" class="bouton bouton--large" id="btn-creer">Créer une session</button>
+    </form>
+
+    <p class="accueil__note">
+      Pas de compte, pas de mot de passe. Les votes restent cachés — côté
+      serveur — jusqu'à ce que tout le monde ait voté.
+    </p>
+  </div>
+</main>
+
+<!-- ═══ 2. La session ═══════════════════════════════════════════════════ -->
+
+<div class="session" id="vue-session" hidden>
+
+  <header class="entete">
+    <span class="marque">🃏 <b>Planning Poker</b></span>
+
+    <div class="entete__outils">
+      <div class="chrono" id="chrono" hidden aria-live="off">
+        <span id="chrono-valeur">15</span><small>s</small>
+      </div>
+      <button class="puce puce--code" id="btn-inviter" title="Inviter l'équipe">
+        <b id="etiquette-code">····</b><small>inviter</small>
+      </button>
+      <button class="puce puce--panneau" id="btn-panneau" aria-expanded="false"
+              aria-controls="panneau" title="Participants et tickets">
+        <b id="compte-presents">0</b><small>présents</small>
+      </button>
+    </div>
+  </header>
+
+  <main class="scene">
+    <section class="vote">
+
+      <div class="ticket" id="ticket">
+        <div class="ticket__haut">
+          <span class="ticket__cle" id="ticket-cle" hidden></span>
+          <span class="ticket__tour" id="ticket-tour" hidden></span>
+          <span class="ticket__chiffrage" id="ticket-chiffrage" hidden></span>
+        </div>
+        <h1 class="ticket__titre" id="ticket-titre">Aucun ticket chargé</h1>
+        <p class="ticket__vide" id="ticket-vide">
+          Le facilitateur colle la liste des tickets pour démarrer.
+        </p>
+      </div>
+
+      <div class="avancement" id="avancement" hidden>
+        <p class="avancement__texte" id="avancement-texte" aria-live="polite"></p>
+        <div class="avancement__jauge"><i id="jauge"></i></div>
+      </div>
+
+      <!-- L'action principale de l'écran. -->
+      <div class="cartes" id="cartes" role="group" aria-label="Choisis ta carte"></div>
+
+      <p class="message" id="message" hidden></p>
+
+      <div class="resultats" id="resultats" hidden>
+        <div class="resultats__moyenne">
+          <span class="resultats__valeur" id="moyenne">—</span>
+          <span class="resultats__label">moyenne</span>
+          <span class="resultats__detail" id="moyenne-detail"></span>
+        </div>
+        <ul class="revelation" id="revelation"></ul>
+      </div>
+
+    </section>
+
+    <div class="barre" id="barre" hidden>
+      <button class="bouton" id="btn-chrono">⏱ 15 s</button>
+      <button class="bouton" id="btn-reveler">👁 Révéler</button>
+      <button class="bouton" id="btn-nouveau-tour" hidden>↻ Nouveau tour</button>
+      <span class="barre__vide"></span>
+      <span class="barre__chiffrage" id="bloc-chiffrage" hidden>
+        <label class="etiquette etiquette--enligne" for="select-chiffrage">Chiffrage</label>
+        <select class="champ champ--select" id="select-chiffrage"></select>
+        <button class="bouton bouton--principal" id="btn-valider">✓ Valider</button>
+      </span>
+      <button class="bouton" id="btn-suivant">Ticket suivant →</button>
+    </div>
+  </main>
+
+  <!-- Colonne de droite sur grand écran, tiroir sur téléphone. -->
+  <aside class="panneau" id="panneau" aria-label="Participants et tickets">
+    <div class="panneau__entete">
+      <b>La session</b>
+      <button class="bouton bouton--icone" id="btn-fermer-panneau" title="Fermer">✕</button>
+    </div>
+
+    <section class="bloc">
+      <h2 class="bloc__titre">Présents <span class="bloc__compte" id="compte-participants"></span></h2>
+      <ul class="participants" id="participants"></ul>
+      <p class="aide" id="aide-facilitateur"></p>
+    </section>
+
+    <section class="bloc bloc--tickets">
+      <h2 class="bloc__titre">Tickets <span class="bloc__compte" id="compte-tickets"></span></h2>
+      <ol class="tickets" id="tickets"></ol>
+      <button class="bouton bouton--large" id="btn-importer" hidden>+ Importer des tickets</button>
+    </section>
+
+    <section class="bloc">
+      <button class="bouton lien-discret" id="btn-quitter">Quitter la session</button>
+    </section>
+  </aside>
+</div>
+
+<!-- ═══ Fenêtres ════════════════════════════════════════════════════════ -->
+
+<div class="modale" id="modale-invitation" hidden>
+  <div class="modale__contenu">
+    <h2 class="modale__titre">Inviter l'équipe</h2>
+    <p class="aide">Partage le lien, ou dicte le code.</p>
+    <div class="invitation">
+      <div class="invitation__qr" id="qr"></div>
+      <div>
+        <div class="invitation__code" id="code-affiche">····</div>
+        <p class="invitation__url" id="url-affichee"></p>
+      </div>
+    </div>
+    <div class="modale__actions">
+      <button class="bouton bouton--principal" id="btn-copier">Copier le lien</button>
+      <button class="bouton" id="btn-fermer-invitation">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modale" id="modale-import" hidden>
+  <div class="modale__contenu modale__contenu--large">
+    <h2 class="modale__titre">Importer des tickets</h2>
+    <p class="aide">
+      Colle une liste, ou choisis un CSV. Une ligne par ticket : la clé Jira
+      puis le titre — <code>PROJ-123 Écran de connexion</code>,
+      <code>PROJ-124;Export CSV</code>, un export Jira avec son en-tête…
+    </p>
+    <textarea class="champ champ--zone" id="champ-tickets" rows="9" spellcheck="false"
+              placeholder="PROJ-123 Écran de connexion&#10;PROJ-124 Export CSV&#10;PROJ-125 Migration de la base"></textarea>
+    <div class="modale__actions">
+      <label class="bouton" for="fichier-csv">⭱ Choisir un CSV
+        <input type="file" id="fichier-csv" accept=".csv,.tsv,.txt,text/csv,text/plain" hidden>
+      </label>
+      <span class="apercu" id="apercu-import"></span>
+      <span class="barre__vide"></span>
+      <button class="bouton" id="btn-fermer-import">Annuler</button>
+      <button class="bouton bouton--principal" id="btn-lancer-import" disabled>Importer</button>
+    </div>
+  </div>
+</div>
+
+<div class="consensus" id="consensus" hidden aria-hidden="true">
+  <div class="consensus__bulle">🎉 Consensus !</div>
+</div>
+
+<div class="alerte" id="alerte" hidden role="status"></div>
+<div class="bandeau-reseau" id="bandeau-reseau" hidden role="status"></div>
+
+<script src="../vendor/qrcode.min.js"></script>
+<script src="../qr.js"></script>
+<script src="vendor/supabase.min.js"></script>
+<script src="config.js"></script>
+<script src="lib.js"></script>
+<script src="api.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
