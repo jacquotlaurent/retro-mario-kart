@@ -32,12 +32,14 @@
 
   function rpc(fn, body) {
     var e = env();
-    var headers = { 'Content-Type': 'application/json', apikey: e.key };
-    // Les projets récents fournissent une clé « publishable » (sb_publishable_…)
-    // au lieu de l'ancienne clé anon au format JWT. L'en-tête apikey suffit
-    // dans les deux cas ; on n'ajoute Authorization que pour les clés JWT,
-    // qu'une gateway pourrait exiger.
-    if (/^ey/.test(e.key)) headers.Authorization = 'Bearer ' + e.key;
+    // Les deux en-têtes, comme le fait supabase-js lui-même : la clé publique
+    // peut être une clé « publishable » (sb_publishable_…) comme l'ancienne clé
+    // anon au format JWT, et la passerelle attend la même paire dans les deux cas.
+    var headers = {
+      'Content-Type': 'application/json',
+      apikey: e.key,
+      Authorization: 'Bearer ' + e.key,
+    };
 
     return fetch(e.url + '/rest/v1/rpc/' + fn, {
       method: 'POST',
